@@ -29,10 +29,11 @@ const ELEMENT_TRANSFORMATIONS: Record<string, string> = {
     text: '$el_text',
     attr_class: 'attr__class',
     attr_id: 'attr__id',
-    href: 'attr__href'
+    href: 'attr__href',
 }
 
 const parseAndSendEvents = async (events: PluginEventExtra[], { config, global }: Migrator3000MetaInput) => {
+    console.log(`Parsing and sending ${events.length} events to ${config.host}`)
     const batch = []
     for (const event of events) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -40,7 +41,6 @@ const parseAndSendEvents = async (events: PluginEventExtra[], { config, global }
             ...event,
             token: config.projectApiKey,
         }
-
 
         if (sendableEvent.properties && sendableEvent.properties.$elements) {
             const newElements = []
@@ -94,7 +94,7 @@ const plugin: Plugin<Migrator3000MetaInput> = {
         },
         parseAndSendEvents: async (payload, meta) => {
             await parseAndSendEvents(payload.events, meta)
-        }
+        },
     },
     runEveryMinute: async ({ global, jobs, storage, cache }) => {
         const currentDate = new Date()
@@ -121,21 +121,21 @@ const plugin: Plugin<Migrator3000MetaInput> = {
 
     setupPlugin: async ({ config, global }) => {
         try {
-            global.startDate = config.startDate ? new Date(config.startDate).toISOString() : null
+            global.startDate = config.startDate ? new Date(config.startDate).toISOString() : ''
         } catch (e) {
             console.log(`Failed to parse start date. Make sure to use the format YYYY-MM-DD`)
             throw e
         }
         global.debug = config.debug === 'ON'
 
-        if (config.posthogVersion === "Latest" || config.posthogVersion === "1.30.0+") {
+        if (config.posthogVersion === 'Latest' || config.posthogVersion === '1.30.0+') {
             global.versionMajor = 1
             global.versionMinor = 31
             return
         }
 
         try {
-            const parsedVersion = config.posthogVersion.split('.').map(digit => Number(digit))
+            const parsedVersion = config.posthogVersion.split('.').map((digit) => Number(digit))
             global.versionMajor = parsedVersion[0]
             global.versionMinor = parsedVersion[1]
         } catch (e) {
@@ -150,9 +150,11 @@ const plugin: Plugin<Migrator3000MetaInput> = {
         // dont export live events, only historical ones
         if (global.versionMajor > 1 || (global.versionMajor === 1 && global.versionMinor > 29)) {
             if (!events[0].properties || !events[0].properties['$$is_historical_export_event']) {
+                console.log(`Skipping live event export`)
                 return
             }
         } else if (events[0].uuid) {
+            console.log(`UUID is empty, skipping live event export`)
             return
         }
 
