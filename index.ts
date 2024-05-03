@@ -97,6 +97,9 @@ const plugin: Plugin<Migrator3000MetaInput> = {
         },
     },
     runEveryMinute: async ({ global, jobs, storage, cache }) => {
+        console.log('DEBUG: Running every minute script')
+        console.log('DEBUG: keys of jobs', Object.keys(jobs))
+        console.log('DEBUG: max date', await storage.get('max_date', global.startDate))
         const currentDate = new Date()
         const lastRun = await cache.get('last_run', null)
         if (!lastRun || currentDate.getTime() - Number(lastRun) > TEN_MINUTES) {
