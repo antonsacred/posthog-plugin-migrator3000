@@ -150,7 +150,7 @@ const plugin: Plugin<Migrator3000MetaInput> = {
         // dont export live events, only historical ones
         if (global.versionMajor > 1 || (global.versionMajor === 1 && global.versionMinor > 29)) {
             if (!events[0].properties || !events[0].properties['$$is_historical_export_event']) {
-                console.log(`Skipping live event export`)
+                console.log(`Skipping live event export, event timestamp: ${events[0].timestamp}`)
                 return
             }
         } else if (events[0].uuid) {
