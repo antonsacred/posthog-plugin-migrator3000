@@ -106,6 +106,9 @@ const plugin: Plugin<Migrator3000MetaInput> = {
             // this "magic" key is added via the historical export upgrade
             const isExportRunning = await storage.get('is_export_running', false)
             if (isExportRunning) {
+                if (global.debug) {
+                    console.log('Export is already running, skipping')
+                }
                 return
             }
 
@@ -160,6 +163,8 @@ const plugin: Plugin<Migrator3000MetaInput> = {
             console.log(`UUID is empty, skipping live event export`)
             return
         }
+
+        console.log(`Exporting ${events.length} events`)
 
         await jobs.parseAndSendEvents({ events }).runNow()
     },
